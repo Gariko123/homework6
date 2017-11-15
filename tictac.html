@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <title>Canvas Resize </title>
+ <style>
+ canvas{
+		border: 10px solid black;
+	}
+	body{
+		margin: 0;
+ 	}</style>
+</head>
+
+<body background="http://www.solidbackgrounds.com/images/1920x1080/1920x1080-black-solid-color-background.jpg">
+<canvas id="game" width="500" height="500"> </canvas>
+<script>const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+
+const char1 = new Image();
+char1.src = 'https://image.ibb.co/jdiz2m/Capture.jpg';
+
+const char0 = new Image();
+char0.src =
+  'https://www.spreadshirt.com.au/image-server/v1/mp/designs/1007872694,width=178,height=178/lucio-ult.png';
+const nolik = new Image();
+nolik.src =
+  'http://bnetcmsus-a.akamaihd.net/cms/user_avatar/j2/J2RCT1J2U4CD1471973010886.png';
+
+let isPlayer = true;
+const board = [[' ', ' ', ' '], [' ', ' ', ' '], [' ', ' ', ' ']];
+
+const rand = function(num) {
+  return Math.floor(Math.random() * num) + 0;
+};
+
+const nextMove = function(board) {
+  for (let i = rand(2); i < board.length; i++) {
+    for (let j = rand(2); j < board.length; j++) {
+      if (board[i][j] === ' ') {
+        return [i, j];
+      }
+    }
+  }
+};
+const makeMove = function(board, coords, isX) {
+  if (
+    (coords[0] === 0 || coords[0] === 1 || coords[0] === 2) &&
+    (coords[1] === 0 || coords[1] === 1 || coords[1] === 2)
+  ) {
+    if (isX) {
+      board[coords[0]][coords[1]] = 'x';
+    } else {
+      board[coords[0]][coords[1]] = 'o';
+    }
+    return 0;
+  }
+  return -1;
+};
+
+const findWinner = function(board) {
+  for (i = 0; i < board.length; i++) {
+    if (
+      board[i][0] === board[i][1] &&
+      board[i][1] === board[i][2] &&
+      board[i][1] !== ' '
+    ) {
+      return {
+        winner: board[i][0],
+        winningLocations: [[i, 0], [i, 1], [i, 2]],
+      };
+    }
+  }
+  for (i = 0; i < board.length; i++) {
+    if (
+      board[0][i] === board[1][i] &&
+      board[1][i] === board[2][i] &&
+      board[1][i] !== ' '
+    ) {
+      return {
+        winner: board[0][i],
+        winningLocations: [[0, i], [0, i], [0, i]],
+      };
+    }
+  }
+  if (
+    board[0][0] === board[1][1] &&
+    board[1][1] === board[2][2] &&
+    board[0][0] !== ' '
+  ) {
+    return {
+      winner: board[1][1],
+      winningLocations: [[0, 0], [1, 1], [2, 2]],
+    };
+  }
+  if (
+    board[0][2] === board[1][1] &&
+    board[1][1] === board[2][0] &&
+    board[0][2] !== ' '
+  ) {
+    return {
+      winner: board[1][1],
+      winningLocations: [[0, 2], [1, 1], [2, 0]],
+    };
+  }
+};
+const drawLines = function() {
+  ctx.drawImage(char1, 0, 0, canvas.width, canvas.height);
+};
+const drawX = function(x, y) {
+  ctx.drawImage(char0, x, y, 150, 150);
+};
+const drawO = function(x, y) {
+  ctx.drawImage(nolik, x, y, 150, 150);
+};
+char1.onload = drawLines;
+
+const first = function() {
+  if (!isPlayer) {
+    const next = nextMove(board);
+    if (makeMove(board, next) === 0) {
+      makeMove(board, next);
+      drawO(next[1] * (canvas.width / 3), next[0] * (canvas.width / 3));
+    }
+  }
+  isPlayer = !isPlayer;
+};
+first();
+let isWin = false;
+let isFirst = false;
+canvas.addEventListener('mousedown', function(e) {
+  if (
+    board[Math.floor(e.offsetY / (canvas.width / 3))][
+      Math.floor(e.offsetX / (canvas.width / 3))
+    ] === ' '
+  ) {
+    board[Math.floor(e.offsetY / (canvas.width / 3))][
+      Math.floor(e.offsetX / (canvas.width / 3))
+    ] =
+      'x';
+    drawX(
+      Math.floor(e.offsetX / (canvas.width / 3)) * (canvas.width / 3),
+      Math.floor(e.offsetY / (canvas.width / 3)) * (canvas.width / 3)
+    );
+    isFirst = false;
+    isPlayer = false;
+  }
+  if (isWin) {
+    alert('game ended');
+    for (let i = 0; i < board.length; i++) {
+      for (let j = 0; j < board.length; j++) {
+        board[i][j] = ' ';
+      }
+    }
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawLines();
+    isWin = false;
+    isPlayer = !isPlayer;
+    first();
+    isFirst = true;
+  }
+  if (findWinner(board)) {
+    isWin = true;
+  }
+});
+canvas.addEventListener('mouseup', function(e) {
+  if (!isFirst && !isWin && !isPlayer) {
+    isPlayer = true;
+    const next = nextMove(board);
+    if (makeMove(board, next) === 0) {
+      makeMove(board, next);
+      drawO(next[1] * (canvas.width / 3), next[0] * (canvas.width / 3));
+    }
+    if (findWinner(board)) {
+      isWin = true;
+    }
+  }
+});
+</script>
+</body>
+</html>
